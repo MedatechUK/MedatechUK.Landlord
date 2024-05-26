@@ -5,3 +5,5 @@ pyside6-rcc ..\res\Landlord.qrc -o .\src\MedatechUK\Landlord\LandlordIcons.py
 py -m build
 twine upload dist/*
 cd ..
+pip uninstall MedatechUK.Landlord
+pip install MedatechUK.Landlord==0.0.11
