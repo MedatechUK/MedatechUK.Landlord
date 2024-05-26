@@ -1,0 +1,22 @@
+<RCC>
+  <qresource prefix="ico">
+    <file alias="moveforward">bring-forward.ico</file>
+    <file alias="sendfront">bring-front.ico</file>
+    <file alias="sendback">send-back.ico</file>
+    <file alias="moveback">send-backward.ico</file>
+    <file alias="delete">eraser.ico</file>
+    <file alias="copy">paste.ico</file>
+    <file alias="barcode">barcode.ico</file>
+    <file alias="qrcode">barcode-read.ico</file>
+    <file alias="image">image.ico</file>
+    <file alias="text">text-size.ico</file>
+    <file alias="updown">up-down.ico</file>
+
+    <file alias="newfile">new.ico</file>
+    <file alias="openfile">folder-open.ico</file>
+    <file alias="savefile">floppy-disk.ico</file>
+    <file alias="saveasfile">floppy-disk-pen.ico</file>
+    <file alias="printfile">print.ico</file>
+
+  </qresource>
+</RCC>
