@@ -1,0 +1,8 @@
+# requirements.txt
+reportlab>=4.2.0
+PyQt6>=6.7.0
+pyqtgraph>=0.13.7
+fonttools>=4.52.1
+pybarcode>=0.8b1
+PyQRCode>=1.2.1
+pylabels>=1.2.1
