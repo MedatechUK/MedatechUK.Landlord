@@ -227,12 +227,13 @@ class labelDef:
                 
                 fillcol = QColor(0,0,0,0)
                 if obj.boxFillColor != None: fillcol = obj.boxFillColor.int_rgb()
+                R,G,B,A = obj.fillColor.int_rgb()
 
                 parameters.append({'name': 'Font',
                     'type': 'group',
                     'children': [                                 
                         {'name': 'fontSize', 'type': 'int', 'value': obj.fontSize , 'siPrefix': True, 'suffix': 'px', 'readonly': False},
-                        {'name': 'fillColor', 'type': 'color', 'value': QColor(obj.fillColor.int_rgb()) ,'readonly': False},
+                        {'title':'Forecolour','name': 'fillColor', 'type': 'color', 'value': QColor(R,G,B) ,'readonly': False},
                         {'name': 'boxFillColor', 'type': 'color', 'value': fillcol ,'readonly': False},                                
                         {'name': 'fontName', 'type': 'list', 'limits': font, 'value': obj.fontName }
                     ]
