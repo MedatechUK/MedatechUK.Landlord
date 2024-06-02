@@ -5,7 +5,8 @@
     <file alias="sendback">send-back.ico</file>
     <file alias="moveback">send-backward.ico</file>
     <file alias="delete">eraser.ico</file>
-    <file alias="copy">paste.ico</file>
+    <file alias="copy">copy.ico</file>
+    <file alias="paste">paste.ico</file>
     <file alias="barcode">barcode.ico</file>
     <file alias="qrcode">barcode-read.ico</file>
     <file alias="image">image.ico</file>

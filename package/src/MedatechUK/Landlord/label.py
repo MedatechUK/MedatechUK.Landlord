@@ -5,7 +5,10 @@ from pathlib import Path
 from io import BytesIO
 
 from pyqtgraph.parametertree import Parameter, parameterTypes
+from PyQt6.QtWidgets import *
 from PyQt6.QtGui import *
+from PyQt6.QtCore import *
+from PyQt6.QtCore import Qt
 
 from reportlab.graphics.shapes import Drawing 
 from reportlab.graphics import renderPM
@@ -14,6 +17,9 @@ from reportlab.lib.colors import *
 from reportlab.pdfbase import pdfmetrics
 
 import barcode
+from barcode.writer import ImageWriter
+from barcode import generate
+import pyqrcode
 
 mm = Decimal(mm)
 sType = Enum('Shape', ['label' , 'qr', 'barcode', 'image' , 'text', 'select'])
@@ -225,16 +231,16 @@ class labelDef:
                 font = []
                 for f in pdfmetrics.getRegisteredFontNames(): font.append(f)                
                 
+                forecol = QColor(int(obj.fillColor.red), int(obj.fillColor.green) , int(obj.fillColor.blue) , 0 if obj.fillColor.alpha==0 else 255)
                 fillcol = QColor(0,0,0,0)
-                if obj.boxFillColor != None: fillcol = obj.boxFillColor.int_rgb()
-                R,G,B,A = obj.fillColor.int_rgb()
-
+                if obj.boxFillColor != None: fillcol =  QColor(obj.boxFillColor.red, obj.boxFillColor.green , obj.boxFillColor.blue , 0 if obj.boxFillColor.alpha==0 else 255)
+                
                 parameters.append({'name': 'Font',
                     'type': 'group',
-                    'children': [                                 
+                    'children': [                               
                         {'name': 'fontSize', 'type': 'int', 'value': obj.fontSize , 'siPrefix': True, 'suffix': 'px', 'readonly': False},
-                        {'title':'Forecolour','name': 'fillColor', 'type': 'color', 'value': QColor(R,G,B) ,'readonly': False},
-                        {'name': 'boxFillColor', 'type': 'color', 'value': fillcol ,'readonly': False},                                
+                        {'title': 'Forecolour', 'name': 'fillColor', 'type': 'color', 'value': forecol ,'readonly': False},
+                        {'title': 'Fillcolour', 'name': 'boxFillColor', 'type': 'color', 'value': fillcol ,'readonly': False},                                
                         {'name': 'fontName', 'type': 'list', 'limits': font, 'value': obj.fontName }
                     ]
                 })
@@ -263,3 +269,143 @@ class labelDef:
         return Parameter.create(name='params', type='group', children=parameters)
 
 #endregion
+
+class MyLabel(QLabel):    
+    
+    wheel_event = pyqtSignal(int)
+    mouse_click = pyqtSignal(QPointF)
+    mouse_Move = pyqtSignal(QPointF)    
+    mouse_drop = pyqtSignal(str, QPointF)
+    right_click = pyqtSignal(QPointF)
+
+    @property
+    def pixmap(self):
+        """Get the current pixmap."""
+        return self._pixmap
+
+    @pixmap.setter
+    def pixmap(self, value):
+        """Set a new pixmap."""
+        self._pixmap = value
+        self.setPixmap(self._pixmap)  # Update the label's display    
+
+    def __init__(self ,  parent=None ):
+        super().__init__(parent)
+
+        self._pixmap = QPixmap()
+        self.setScaledContents(True)  # Scale pixmap to label size        
+        self.setAcceptDrops(True)
+        self.drag = True
+
+    def wheelEvent(self, event):
+        # Get the rotation angle (positive for forward, negative for backward)        
+        self.wheel_event.emit(( event.angleDelta().y() // 120 ) * 50)
+    
+    def relPos(self, event):
+        # Get the position of the mouse click
+        x, y = event.pos().x(), event.pos().y()
+
+        # Convert label coordinates to pixmap coordinates
+        pixmap_rect = self.pixmap.rect()
+        return QPointF(
+            (x - pixmap_rect.x()) / pixmap_rect.width()
+            , 1 - (y - pixmap_rect.y()) / pixmap_rect.height() 
+        )
+
+    def mousePressEvent(self, event):        
+        # Call the Scale method when the label is clicked
+        match event.button():
+            case Qt.MouseButton.LeftButton:
+                self.drag_start_position = self.relPos(event)
+                self.mouse_click.emit(self.relPos(event))
+                
+            case Qt.MouseButton.RightButton:      
+                self.drag = False          
+                self.right_click.emit(self.relPos(event))
+        
+    def mouseMoveEvent(self, event):
+        self.drag = False
+        if not (event.buttons() & Qt.MouseButton.LeftButton):
+            return
+        
+        pos = self.relPos(event)        
+        self.mouse_Move.emit(
+            QPointF(
+                self.drag_start_position.x()-pos.x()
+                , self.drag_start_position.y()-pos.y()
+        ))
+        self.drag_start_position = pos
+        self.drag = True
+
+    def mouseReleaseEvent(self, event):
+        # Emit the signal when the mouse is released
+        if self.drag :
+            self.drag = False            
+            
+        # Call the parent class's mouseReleaseEvent to ensure proper event handling
+        super(MyLabel, self).mouseReleaseEvent(event)
+
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasFormat("text/plain"):
+            event.accept()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event):
+        if event.mimeData().hasFormat("text/plain"):
+            x, y = event.position().x(), event.position().y()
+
+            # Convert label coordinates to pixmap coordinates
+            pixmap_rect = self.pixmap.rect()            
+            self.mouse_drop.emit( 
+                event.mimeData().text() 
+                , QPointF(
+                    (x - pixmap_rect.x()) / pixmap_rect.width()
+                    , 1 - (y - pixmap_rect.y()) / pixmap_rect.height() 
+                )      
+            )
+            event.accept()
+
+class mkBarcode():
+    def __init__(self , Label , obj , uuid):
+
+        caller_frame = inspect.currentframe().f_back                
+        self.ParentDir = Path(inspect.getframeinfo(caller_frame).filename).parent                
+        self.WorkingDir = os.path.join(self.ParentDir , "tmp")         
+        if not os.path.exists( self.WorkingDir ):
+            os.makedirs( self.WorkingDir )
+
+        obj["clean"] = []    
+        for i in [i for i in Label.contents]:
+            if "__name__" in dir(i):
+                if "__formatStr__" in dir(i):
+                    s = i.__formatStr__            
+                    for p in range(20):
+                        if "<P" not in s: break
+                        s = s.replace("<P{}>".format( str(p+1) ) , obj[ "PAR{}".format( str(p+1) ) ] )
+
+                    if "__encoding__" in dir(i):
+                        try:                   
+                            match i.__encoding__:
+                                case "QRCODE":
+                                    s = s.replace( "<QR>", json.dumps( obj ["QR"] ) )
+                                    qrcode = pyqrcode.create(s)
+                                    i.path = os.path.join(self.WorkingDir , "{}{}.png".format(uuid, i.__filename__))
+                                    qrcode.png(i.path , scale=8)
+                                    obj["clean"].append(i.path)
+
+                                case _:
+                                    barclass = barcode.get_barcode_class(i.__encoding__)                                           
+                                    bar = barclass(s, writer=ImageWriter())
+                                    bar.save(os.path.join( self.WorkingDir ,  "{}{}".format( uuid, i.__filename__) ))
+                                    i.path = os.path.join( self.WorkingDir , "{}{}.png".format( uuid , i.__filename__) )                
+                                    obj["clean"].append(i.path)
+
+                        except Exception as e:
+                            i.path = ""        
+                    
+                    else:
+                        i.setText(s)
+                
+                else:
+                    i.path = os.path.join( self.ParentDir , "{}".format( i.__filename__) )            
