@@ -59,3 +59,5 @@ The class emits signals for various events such as wheel rotation, mouse clicks,
 ### MyForm
 This class represents a custom form widget. It inherits from the QMainWindow class and provides additional functionality for handling key press and close events. It emits a signal when a key press event occurs and when the form is being closed. It also has a boolean flag indicating whether the form is being closed.
 
+## icons.py
+Contains icon resources.
