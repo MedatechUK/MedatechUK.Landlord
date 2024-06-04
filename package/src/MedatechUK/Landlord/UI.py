@@ -11,7 +11,18 @@ from pyqtgraph.parametertree import ParameterTree , Parameter
 from MedatechUK.Landlord.label import sType
 
 class MyLabel(QLabel):    
-    
+
+    """Custom QLabel widget with additional signals and functionality.
+
+    This class extends the QLabel widget and adds the following features:
+    - Signals for wheel events, mouse clicks, mouse movement, mouse drops, and right clicks.
+    - Ability to set and get the current pixmap.
+    - Scaling the pixmap to fit the label size.
+    - Accepting drops and handling drag events.
+    - Converting label coordinates to pixmap coordinates.
+    - Handling mouse press, move, and release events.
+    """
+
     wheel_event = pyqtSignal(int)
     mouse_click = pyqtSignal(QPointF)
     mouse_Move = pyqtSignal(QPointF)    
@@ -64,10 +75,12 @@ class MyLabel(QLabel):
                 self.right_click.emit(self.relPos(event))
         
     def mouseMoveEvent(self, event):
+        # Emit the signal when the mouse is moved
         self.drag = False
         if not (event.buttons() & Qt.MouseButton.LeftButton):
             return
         
+        # Calculate the distance moved by the mouse
         pos = self.relPos(event)        
         self.mouse_Move.emit(
             QPointF(
@@ -107,7 +120,25 @@ class MyLabel(QLabel):
             event.accept()
 
 class MyForm(QMainWindow):
-    
+    """
+    This class represents a custom form widget.
+
+    It inherits from the QMainWindow class and provides additional functionality
+    for handling key press and close events.
+
+    Signals:
+        - keyPress_Event: Signal emitted when a key press event occurs.
+        - close_Event: Signal emitted when the form is being closed.
+
+    Attributes:
+        - closing: Boolean flag indicating whether the form is being closed.
+
+    Methods:
+        - keyPressEvent: Overrides the keyPressEvent method to emit the keyPress_Event signal.
+        - closeEvent: Overrides the closeEvent method to emit the close_Event signal and handle the close event.
+
+    """
+
     keyPress_Event = pyqtSignal(int)
     close_Event = pyqtSignal()
 
@@ -125,81 +156,203 @@ class MyForm(QMainWindow):
             case _   : event.ignore()     
 
 class myProps(ParameterTree):
+    """
+    A class representing properties.
+
+    This class inherits from the ParameterTree class.
+
+    Parameters:
+        parent (QWidget): The parent widget for the myProps instance.
+
+    Attributes:
+        None
+
+    Methods:
+        __init__(self, parent=None): Initializes a new instance of the myProps class.
+
+    """
     def __init__(self , parent=None):
-        super().__init__(parent)       
+        super().__init__(parent)
 
 class DragButton(QPushButton):
-    def __init__(self ,  parent=None ):
+    """
+    A custom button that supports dragging and dropping.
+
+    Inherits from QPushButton.
+
+    Attributes:
+        None
+
+    Methods:
+        __init__(self, parent=None): Initializes the DragButton object.
+        mouseMoveEvent(self, e): Handles the mouse move event for dragging the button.
+
+    """
+    def __init__(self, parent=None):
         super().__init__(parent)
         self.setIconSize(self.size())
         
     def mouseMoveEvent(self, e):
+        """
+        Handles the mouse move event for dragging the button.
+
+        Args:
+            e (QMouseEvent): The mouse event object.
+
+        Returns:
+            None
+
+        """
         if e.buttons() == Qt.MouseButton.LeftButton:
             drag = QDrag(self)
             mime = QMimeData()                     
-            mime.setData("text/plain", bytes(self.objectName() , 'utf-8'))
+            mime.setData("text/plain", bytes(self.objectName(), 'utf-8'))
             drag.setMimeData(mime) 
             drag.exec(Qt.DropAction.MoveAction)
 
 class ClickButton(QPushButton):
-    
+    """
+    A custom QPushButton that emits a signal when clicked.
+
+    Inherits from QPushButton and adds a custom signal `mouse_click` that is emitted
+    when the button is clicked with the left mouse button.
+
+    Attributes:
+        mouse_click (pyqtSignal): A signal that is emitted when the button is clicked.
+
+    Methods:
+        __init__(self, parent=None): Initializes the ClickButton object.
+        mousePressEvent(self, e): Overrides the mousePressEvent to emit the `mouse_click` signal.
+
+    """
+
     mouse_click = pyqtSignal(str)
 
-    def __init__(self ,  parent=None ):
+    def __init__(self, parent=None):
+        """
+        Initializes the ClickButton object.
+
+        Args:
+            parent (QWidget): The parent widget of the button.
+
+        """
         super().__init__(parent)
         self.setIconSize(self.size())
-        
-    def mousePressEvent(self, e): 
+
+    def mousePressEvent(self, e):
+        """
+        Overrides the mousePressEvent to emit the `mouse_click` signal.
+
+        Args:
+            e (QMouseEvent): The mouse event object.
+
+        """
         if e.buttons() == Qt.MouseButton.LeftButton:
-            self.mouse_click.emit(self.objectName())            
+            self.mouse_click.emit(self.objectName())
 
 class OkOnlyDialog(QMessageBox):
-    def __init__(self , title="OK Dialog", message="message"):
+    """
+    Custom dialog box with only an 'OK' button.
+
+    Args:
+        title (str): The title of the dialog box. Default is 'OK Dialog'.
+        message (str): The message to be displayed in the dialog box. Default is 'message'.
+    """
+    def __init__(self, title="OK Dialog", message="message"):
         super().__init__()
         self.setWindowTitle(title)                                            
         self.setText(message)
         self.setStandardButtons(QMessageBox.StandardButton.Ok )
                     
 class MyDockWidget(QDockWidget):
-    
+    """
+    Custom dock widget class that emits a signal when a key is pressed.
+    """
+
     key_press = pyqtSignal(int)
 
     def __init__(self, parent=None):
         super().__init__(parent)        
 
     def keyPressEvent(self, event):
-        self.key_press.emit(event.key())                    
+        """
+        Overrides the keyPressEvent method to emit a signal when a key is pressed.
+
+        Args:
+            event (QKeyEvent): The key event object.
+
+        Returns:
+            None
+        """
+        self.key_press.emit(event.key())
 
 class CustomSlider(QSlider):
-    
+    """
+    A custom slider widget that emits a signal when a key is pressed.
+    """
+
     keyPress_Event = pyqtSignal(int)        
 
     def __init__(self, orientation, parent=None):
         super().__init__(orientation, parent)
 
     def keyPressEvent(self, event):
-        self.keyPress_Event.emit(event.key())        
+        """
+        Overrides the keyPressEvent method of QSlider.
+        Emits the keyPress_Event signal with the key code of the pressed key.
+        
+        Args:
+            event (QKeyEvent): The key event object.
+        """
+        self.keyPress_Event.emit(event.key())
 
 class iniTree(ParameterTree):
-    def __init__(self , parent=None):        
+    """
+    A custom class that extends the ParameterTree class.
+    This class represents a tree structure for managing and displaying parameters.
+
+    Attributes:
+        _WorkingDir (str): The working directory path.
+    """
+
+    def __init__(self, parent=None):        
         super().__init__(parent)     
         self._WorkingDir = None
 
     @property
     def WorkingDir(self):
+        """
+        Get the working directory path.
+
+        Returns:
+            str: The working directory path.
+        """
         return self._WorkingDir
+
     @WorkingDir.setter
     def WorkingDir(self, value):
+        """
+        Set the working directory path.
+
+        Args:
+            value (str): The working directory path.
+        """
         self._WorkingDir = value
         self.config = configparser.ConfigParser()
-        self.config.read(os.path.join(self.WorkingDir , "Settings.ini"))    
+        self.config.read(os.path.join(self.WorkingDir, "Settings.ini"))    
         p = self.getParams()        
-        self.setParameters(p,showTop=False)
+        self.setParameters(p, showTop=False)
         for child in p.children():
             for child in child.childs:
                 child.sigValueChanged.connect(self.handleChange)
 
     def getParams(self):
+        """
+        Get the parameters from the configuration file.
+
+        Returns:
+            Parameter: The parameters as a Parameter object.
+        """
         parameters = []
 
         for c in self.config.sections():                
@@ -215,6 +368,13 @@ class iniTree(ParameterTree):
         return Parameter.create(name='params', type='group', children=parameters)
     
     def handleChange(self, _param, _value):
+        """
+        Handle the change event when a parameter value is modified.
+
+        Args:
+            _param (Parameter): The parameter object that triggered the event.
+            _value (str): The new value of the parameter.
+        """
         sect = _param.opts["name"].split(".")[0]
         key = _param.opts["name"].split(".")[1]
         self.config.set(sect, key, _value)
