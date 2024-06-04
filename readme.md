@@ -1,6 +1,6 @@
 # MedatechUK.Landlord
 
-## label.py
+## [label.py](./tree/master/package/package/src/MedatechUK/Landlord/label.py)
 
 The `label.py` file contains three main classes: `BlankLabel`, `labelDef` and `mkBarcode`.
 
@@ -41,7 +41,7 @@ If the shape does not have a format string, it sets the path to the filename in 
 
 If an error occurs during the initialization of the mkBarcode class, it prints the error.
 
-## UI.py
+## [UI.py](./tree/master/package/package/src/MedatechUK/Landlord/UI.py)
 The UI.py file contains several classes that are used in the Landlord GUI application. Here's a brief description of each class:
 
 ### MyLabel
@@ -59,5 +59,5 @@ The class emits signals for various events such as wheel rotation, mouse clicks,
 ### MyForm
 This class represents a custom form widget. It inherits from the QMainWindow class and provides additional functionality for handling key press and close events. It emits a signal when a key press event occurs and when the form is being closed. It also has a boolean flag indicating whether the form is being closed.
 
-## icons.py
+## [icons.py](./tree/master/package/package/src/MedatechUK/Landlord/icons.py)
 Contains icon resources.
