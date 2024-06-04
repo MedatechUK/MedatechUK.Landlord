@@ -6,7 +6,7 @@ pyuic6 -x Landlord.ui -o "C:\Program Files\Python312\Lib\site-packages\MedatechU
 
 copy readme.md "./package/readme.md" /y
 
-XCOPY "C:\Program Files\Python312\Lib\site-packages\MedatechUK\Landlord\*.*" ".\src\MedatechUK\Landlord\" /s /y
+XCOPY "C:\Program Files\Python312\Lib\site-packages\MedatechUK\Landlord\*.*" ".\package\src\MedatechUK\Landlord\" /s /y
 move .\package\dist\*.* .\package\old
 cd package
 py -m build
