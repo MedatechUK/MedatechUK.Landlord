@@ -13,7 +13,7 @@ The `create_module` method creates a new module of type `spec.name` with the att
 - `specs`: This attribute is initially set to `None`.
 - `border`: This attribute is a boolean that is initially set to `False`.
 - `debug`: This attribute is a boolean that is initially set to `False`.
-- `testdata`: This attribute is a dictionary that contains test data for the module. It includes QR code data, a count, and six parameters (`PAR1` to `PAR6`) each containing a string "Test Data X" where X is the parameter number.
+- `testdata`: This attribute is a dictionary that contains test data for the module. It includes QR code data, a count, and six parameters (`PAR1` to `PAR20`) each containing a string "Test Data X" where X is the parameter number.
 
 ### labelDef
 
